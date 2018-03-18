@@ -1,0 +1,11 @@
+[package]
+name = "axp209"
+version = "0.1.0"
+authors = ["Edwin Amsler <edwinguy@gmail.com>"]
+
+[dependencies]
+embedded-hal = "0.1.2"
+
+[dev-dependencies]
+#linux-embedded-hal = "0.1.1"
+linux-embedded-hal = { path = "../linux-embedded-hal" }
