@@ -40,17 +40,29 @@ where
 		Ok(buf[0])
 	}
 
-	pub fn battery_voltage(&mut self) -> Result<f32, E> {
+	pub fn battery_voltage(&mut self) -> Result<u16, E> {
 		let comm: [u8; 1] = [ Registers::BatteryVoltage as u8 ];
 		let mut recv: [u8; 2] = [ 0, 0 ];
+		let mut value: u16 = 0;
 
 		self.device.write_read(self.address, &comm, &mut recv)?;
 
-		Ok(1.1 * LittleEndian::read_u16(&recv) as f32)
+		// Weird way to store a number if ye ask me!
+		// Also, voltage is in 1.1mv increments so we add 1/10th the value
+		value = (recv[0] as u16) << 4;
+		value |= recv[1] as u16 & 0x0f;
+		value += value / 10;
+
+		Ok(value)
 	}
 
 	pub fn battery_level(&mut self) -> Result<u8, E> {
-		self.write_read_byte(Registers::BatteryLevel as u8)
+		// The MSB for the voltage is a control bit that enables or
+		// disables sampling
+		match self.write_read_byte(Registers::BatteryLevel as u8) {
+			Ok(x) => Ok(x & 0b0111_1111),
+			Err(x) => Err(x)
+		}
 	}
 
 	fn battery_present(&mut self) -> Result<bool, E> {

@@ -15,7 +15,7 @@ fn main() {
 	display_battery_info(level);
 
 	let voltage = pmic.battery_voltage().unwrap();
-	println!("Voltage: {}v", voltage);
+	println!("Voltage: {}mV", voltage);
 }
 
 fn display_battery_info(level: Result<u8, LinuxI2CError>) {
