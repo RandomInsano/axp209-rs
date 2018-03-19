@@ -4,14 +4,16 @@
 #![allow(dead_code)]
 
 extern crate embedded_hal as hal;
+extern crate byteorder;
 
-use hal::blocking::delay::DelayMs;
+use byteorder::{ByteOrder, LittleEndian};
 use hal::blocking::i2c::{Read, Write, WriteRead};
 
 pub const BATTERY_LEVEL_MISSING: u8 = 0x7f;
 
 enum Registers {
 	BatteryLevel = 0xb9,
+	BatteryVoltage = 0x78,
 }
 
 pub struct Axp209<I2C> {
@@ -30,12 +32,25 @@ where
 		}
 	}
 
-	pub fn battery_level(&mut self) -> Result<u8, E> {
-		let comm: [u8; 1] = [ Registers::BatteryLevel as u8 ];
+	fn write_read_byte(&mut self, send: u8) -> Result<u8, E> {
+		let comm: [u8; 1] = [ send ];
 		let mut buf: [u8; 1] = [0];
 		self.device.write_read(self.address, &comm, &mut buf)?;
 
 		Ok(buf[0])
+	}
+
+	pub fn battery_voltage(&mut self) -> Result<f32, E> {
+		let comm: [u8; 1] = [ Registers::BatteryVoltage as u8 ];
+		let mut recv: [u8; 2] = [ 0, 0 ];
+
+		self.device.write_read(self.address, &comm, &mut recv)?;
+
+		Ok(1.1 * LittleEndian::read_u16(&recv) as f32)
+	}
+
+	pub fn battery_level(&mut self) -> Result<u8, E> {
+		self.write_read_byte(Registers::BatteryLevel as u8)
 	}
 
 	fn battery_present(&mut self) -> Result<bool, E> {

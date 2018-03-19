@@ -3,8 +3,7 @@ extern crate embedded_hal;
 extern crate axp209;
 
 use linux_hal::{I2cdev};
-use embedded_hal::blocking::i2c::{Read, Write, WriteRead};
-use std::fmt::Error;
+use linux_hal::i2cdev::linux::LinuxI2CError;
 use axp209::{Axp209, BATTERY_LEVEL_MISSING};
 
 fn main() {
@@ -12,13 +11,15 @@ fn main() {
 	let address = 0x34;
 
 	let mut pmic = Axp209::new(i2c, address);
-	display_battery_info(&mut pmic);
+	let level = pmic.battery_level();
+	display_battery_info(level);
+
+	let voltage = pmic.battery_voltage().unwrap();
+	println!("Voltage: {}v", voltage);
 }
 
-fn display_battery_info<I2C,E>(pmic: &mut Axp209<I2C>) where
-	I2C: WriteRead<Error = E> + Write<Error = E> + Read<Error = E> {
-
-	let level = match pmic.battery_level() {
+fn display_battery_info(level: Result<u8, LinuxI2CError>) {
+	let level = match level {
 		Ok(x) => x,
 		_ => { 
 			println!("Unable to get battery state. Exiting");
