@@ -6,14 +6,19 @@
 extern crate embedded_hal as hal;
 extern crate byteorder;
 
-use byteorder::{ByteOrder, LittleEndian};
+//use byteorder::{ByteOrder, LittleEndian};
 use hal::blocking::i2c::{Read, Write, WriteRead};
 
 pub const BATTERY_LEVEL_MISSING: u8 = 0x7f;
 
 enum Registers {
+	AcinVoltage = 0x56,
+	VbusCurrent = 0x5c,
+	Temperature = 0x5e,
 	BatteryLevel = 0xb9,
 	BatteryVoltage = 0x78,
+	BatteryChargeCurrent = 0x7a,
+	BatteryDischargeCurrent = 0x7c,
 }
 
 pub struct Axp209<I2C> {
@@ -40,20 +45,82 @@ where
 		Ok(buf[0])
 	}
 
-	pub fn battery_voltage(&mut self) -> Result<u16, E> {
-		let comm: [u8; 1] = [ Registers::BatteryVoltage as u8 ];
+	/// Many ADC functions on this chip provide their values as a strange
+	/// 10bit value that requires some funky shifting
+	pub fn get_adc_10bits(&mut self, register: u8) -> Result<u16, E> {
+		let comm: [u8; 1] = [ register ];
 		let mut recv: [u8; 2] = [ 0, 0 ];
-		let mut value: u16 = 0;
+		let mut value: u16;
 
 		self.device.write_read(self.address, &comm, &mut recv)?;
 
 		// Weird way to store a number if ye ask me!
-		// Also, voltage is in 1.1mv increments so we add 1/10th the value
 		value = (recv[0] as u16) << 4;
 		value |= recv[1] as u16 & 0x0f;
+
+		Ok(value)
+	}
+
+	/// In millivolts
+	pub fn battery_voltage(&mut self) -> Result<u16, E> {
+		let mut value = self.get_adc_10bits(Registers::BatteryVoltage as u8)?;
+
+		// Voltage is in 1.1mV increments, so just add 1/10 the value and
+		// avoid those pesky floating point multiplications. :D
 		value += value / 10;
 
 		Ok(value)
+	}
+
+	/// In milliamps
+	pub fn battery_charging_current(&mut self) -> Result<u16, E> {
+		let value = self.get_adc_10bits(Registers::BatteryChargeCurrent as u8)?;
+
+		Ok(value / 2)
+	}
+
+	/// In milliamps
+	pub fn vbus_current(&mut self) -> Result<u16, E> {
+		let value = self.get_adc_10bits(Registers::VbusCurrent as u8)?;
+
+		Ok(value / 2)
+	}
+
+	/// In millivolts
+	pub fn acin_voltage(&mut self) -> Result<u16, E> {
+		let mut value = self.get_adc_10bits(Registers::AcinVoltage as u8)?;
+
+		value += value / 7;
+
+		Ok(value)
+	}
+
+	/// In celcius
+	pub fn temperature(&mut self) -> Result<i16, E> {
+		// Check out page 25 of the datasheet for the weird math
+
+		let value = self.get_adc_10bits(Registers::Temperature as u8)?;
+
+		let mut value = value as i16 / 10;
+		value -= 145;
+
+		Ok(value)
+	}
+
+	/// In milliamps
+	pub fn battery_discharging_current(&mut self) -> Result<u16, E> {
+		let comm: [u8; 1] = [ Registers::BatteryDischargeCurrent as u8 ];
+		let mut recv: [u8; 2] = [ 0, 0 ];
+		let mut value: u16;
+
+		self.device.write_read(self.address, &comm, &mut recv)?;
+
+		// Of course one would have 5 least significant bits and
+		// ruin my get_adc_10bits function above!
+		value = (recv[0] as u16) << 5;
+		value |= recv[1] as u16 & 0x1f;
+
+		Ok(value / 2)
 	}
 
 	pub fn battery_level(&mut self) -> Result<u8, E> {
@@ -84,8 +151,7 @@ mod tests {
     #[test]
     fn permissions() {
         let mut gpio = Pin::new(135);
-        //let state = gpio.is_low();
-        let state = true;
+        let state = gpio.is_low();
 
         if state {
             gpio.set_high();
