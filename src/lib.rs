@@ -3,11 +3,16 @@
 #![feature(rustc_private)]
 
 extern crate embedded_hal as hal;
+#[macro_use]
+extern crate bitflags;
 extern crate byteorder;
 
-use byteorder::{ByteOrder, LittleEndian};
+pub mod adc_status;
+
+pub use self::adc_status::AdcStatus;
+
+use byteorder::{ByteOrder, BigEndian};
 use hal::blocking::i2c::{Read, Write, WriteRead};
-use self::adc_status::AdcStatus;
 
 pub const BATTERY_LEVEL_MISSING: u8 = 0x7f;
 
@@ -19,7 +24,7 @@ enum Registers {
 
 
 	// ADC Control
-	AdcControl = 0x83,	
+	AdcControl = 0x82,	
 
 	// ADC Value registers
 	AcinVoltage = 0x56,
@@ -72,9 +77,7 @@ where
 
 		self.device.write_read(self.address, &comm, &mut buf)?;
 
-		Ok(AdcStatus { 
-			bits: LittleEndian::read_u16(&buf),
-		})
+		Ok(AdcStatus::new(BigEndian::read_u16(&buf)))
 	}
 
 	/// Many ADC functions on this chip provide their values as a strange

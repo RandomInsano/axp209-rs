@@ -40,6 +40,10 @@ fn main() {
 
 	let value = pmic.adc_control().unwrap();
 	println!("Flags: {:b}", value);
+	println!("Flags: {:?}", value);
+	println!("  Battery Voltage: {}", value.battery_voltage());
+
+
 }
 
 fn display_battery_info(level: Result<u8, LinuxI2CError>) {
