@@ -39,9 +39,13 @@ fn main() {
 	println!("Temperature:       {}°C", value);
 
 	let value = pmic.adc_control().unwrap();
-	println!("Flags: {:?}", value);
+	println!("Power Control Flags: {:?}", value);
 
-	
+	let value = pmic.power_status().unwrap();
+	println!("Power Status Flags:  {:?}", value);
+
+	let value = pmic.charging_status().unwrap();
+	println!("Charge Status Flags: {:?}", value);
 }
 
 fn display_battery_info(level: Result<u8, LinuxI2CError>) {
@@ -58,6 +62,4 @@ fn display_battery_info(level: Result<u8, LinuxI2CError>) {
 	} else {
 		println!("Battery missing");
 	}
-
 }
-

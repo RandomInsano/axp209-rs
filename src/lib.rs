@@ -7,9 +7,13 @@ extern crate embedded_hal as hal;
 extern crate bitflags;
 extern crate byteorder;
 
-pub mod adc_status;
+pub mod adc_control;
+pub mod power_status;
+pub mod charging_status;
 
-pub use self::adc_status::AdcStatus;
+pub use self::adc_control::AdcControl;
+pub use self::power_status::PowerStatus;
+pub use self::charging_status::ChargingStatus;
 
 use byteorder::{ByteOrder, BigEndian};
 use hal::blocking::i2c::{Read, Write, WriteRead};
@@ -19,7 +23,7 @@ pub const BATTERY_LEVEL_MISSING: u8 = 0x7f;
 enum Registers {
 	// Power status and control registers
 	PowerStatus = 0x00,
-	BatteryStatus = 0x01,
+	ChargingStatus = 0x01,
 	OutputControl = 0x12,
 
 
@@ -71,18 +75,9 @@ where
 		Ok(buf[0])
 	}
 
-	pub fn adc_control(&mut self) -> Result<AdcStatus, E> {
-		let comm: [u8; 1] = [ Registers::AdcControl as u8 ];
-		let mut buf: [u8; 2] = [0, 0];
-
-		self.device.write_read(self.address, &comm, &mut buf)?;
-
-		Ok(AdcStatus::new(BigEndian::read_u16(&buf)))
-	}
-
 	/// Many ADC functions on this chip provide their values as a strange
 	/// 10bit value that requires some funky shifting
-	pub fn get_adc_10bits(&mut self, register: u8) -> Result<u16, E> {
+	fn get_adc_10bits(&mut self, register: u8) -> Result<u16, E> {
 		let comm: [u8; 1] = [ register ];
 		let mut recv: [u8; 2] = [ 0, 0 ];
 		let mut value: u16;
@@ -94,6 +89,36 @@ where
 		value |= recv[1] as u16 & 0x0f;
 
 		Ok(value)
+	}
+
+	fn get_8bit_register(&mut self, register: u8) -> Result<u8, E> {
+		let comm: [u8; 1] = [ register ];
+		let mut buf: [u8; 1] = [0];
+
+		self.device.write_read(self.address, &comm, &mut buf)?;
+
+		Ok(buf[0])
+	}
+
+	fn get_16bit_register(&mut self, register: u8) -> Result<u16, E> {
+		let comm: [u8; 1] = [ register ];
+		let mut buf: [u8; 2] = [0, 0];
+
+		self.device.write_read(self.address, &comm, &mut buf)?;
+
+		Ok(BigEndian::read_u16(&buf))
+	}
+
+	pub fn adc_control(&mut self) -> Result<AdcControl, E> {
+		Ok(AdcControl::new(self.get_16bit_register(Registers::AdcControl as u8)?))
+	}
+
+	pub fn power_status(&mut self) -> Result<PowerStatus, E> {
+		Ok(PowerStatus::new(self.get_8bit_register(Registers::PowerStatus as u8)?))
+	}
+
+	pub fn charging_status(&mut self) -> Result<ChargingStatus, E> {
+		Ok(ChargingStatus::new(self.get_8bit_register(Registers::ChargingStatus as u8)?))
 	}
 
 	/// In milliamps
