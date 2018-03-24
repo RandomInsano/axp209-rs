@@ -23,14 +23,23 @@ fn main() {
 	let value = pmic.battery_charging_current().unwrap();
 	println!("Charge Current:    {}mA", value);
 
-	let value = pmic.vbus_current().unwrap();
-	println!("Vbus Current:      {}mA", value);
-
 	let value = pmic.acin_voltage().unwrap();
 	println!("ACIN Voltage:      {}mV", value);
 
+	let value = pmic.acin_current().unwrap();
+	println!("ACIN Current:      {}mA", value);
+
+	let value = pmic.vbus_voltage().unwrap();
+	println!("Vbus Voltage:      {}mV", value);
+
+	let value = pmic.vbus_current().unwrap();
+	println!("Vbus Current:      {}mA", value);
+
 	let value = pmic.temperature().unwrap();
 	println!("Temperature:       {}°C", value);
+
+	let value = pmic.adc_control().unwrap();
+	println!("Flags: {:b}", value);
 }
 
 fn display_battery_info(level: Result<u8, LinuxI2CError>) {
