@@ -10,10 +10,12 @@ extern crate byteorder;
 pub mod adc_control;
 pub mod power_status;
 pub mod charging_status;
+pub mod timer_control;
 
 pub use self::adc_control::AdcControl;
 pub use self::power_status::PowerStatus;
 pub use self::charging_status::ChargingStatus;
+pub use self::timer_control::TimerControl;
 
 use byteorder::{ByteOrder, BigEndian};
 use hal::blocking::i2c::{Read, Write, WriteRead};
@@ -25,7 +27,7 @@ enum Registers {
 	PowerStatus = 0x00,
 	ChargingStatus = 0x01,
 	OutputControl = 0x12,
-
+	TimerControl = 0x8a,
 
 	// ADC Control
 	AdcControl = 0x82,	
@@ -121,6 +123,10 @@ where
 		Ok(ChargingStatus::new(self.get_8bit_register(Registers::ChargingStatus as u8)?))
 	}
 
+	pub fn timer_control(&mut self) -> Result<TimerControl, E> {
+		Ok(TimerControl::new(self.get_8bit_register(Registers::TimerControl as u8)?))
+	}
+
 	/// In milliamps
 	pub fn battery_discharging_current(&mut self) -> Result<u16, E> {
 		let comm: [u8; 1] = [ Registers::BatteryDischargeCurrent as u8 ];
@@ -206,6 +212,24 @@ where
 		value -= 145;
 
 		Ok(value)
+	}
+
+	/// In millivolts. Battery temperature sensor
+	pub fn ts_voltage(&mut self) -> Result<u16, E> {
+		let value = self.get_adc_10bits(Registers::BatteryTemperature as u8)?;
+
+		// Increments of 0.8
+		Ok((value * 8) / 10)
+	}
+
+	/// In millivolts. I'm assuming power division is 1.4 as defined in APS, but
+	/// as there is nothing in the datasheet specifically for Ipsout's settings
+	/// and there is no register defined for ipsout.
+	pub fn ipsout_voltage(&mut self) -> Result<u16, E> {
+		let value = self.get_adc_10bits(Registers::SystemIpsout as u8)?;
+
+		// Increments of 1.4
+		Ok((value * 14) / 10)
 	}
 
 	/// In millivolts. Unconfirmed

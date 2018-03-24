@@ -38,6 +38,14 @@ fn main() {
 	let value = pmic.temperature().unwrap();
 	println!("Temperature:       {}°C", value);
 
+	let value = pmic.ts_voltage().unwrap();
+	println!("Temp Sensor Pin:   {}mV", value);
+
+	let value = pmic.ipsout_voltage().unwrap();
+	println!("Ipsout?!:          {}mV", value);
+
+	println!("");
+
 	let value = pmic.adc_control().unwrap();
 	println!("Power Control Flags: {:?}", value);
 
@@ -46,6 +54,11 @@ fn main() {
 
 	let value = pmic.charging_status().unwrap();
 	println!("Charge Status Flags: {:?}", value);
+
+	println!("");
+
+	let value = pmic.timer_control().unwrap();
+	println!("Timer:\n\tExpired: {}\n\tTime (minutes): {}", value.expired(), value.minutes());
 }
 
 fn display_battery_info(level: Result<u8, LinuxI2CError>) {

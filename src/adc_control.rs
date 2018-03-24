@@ -8,9 +8,10 @@ bitflags! {
 		const ACIN_CURRENT = 1 << 12;
 		const VBUS_VOLTAGE = 1 << 11;
 		const VBUS_CURRENT = 1 << 10;
-		const APS_VOLTAGE = 1 << 9; // Not sure what theses do yet
-		const TS_FUNCTION = 1 << 8; // so I'm not implementing access
-
+        /// Tests internal voltage to make sure it's still accurate
+		const APS_VOLTAGE = 1 << 9;
+        /// Temperature sensor for battery or backup battery voltage sense
+		const TS_FUNCTION = 1 << 8;
 		const TEMPERATURE = 1 << 7;
 		const GPIO0 = 1 << 3;
 		const GPIO1 = 1 << 2;
