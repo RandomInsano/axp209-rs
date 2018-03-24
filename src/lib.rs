@@ -207,7 +207,7 @@ where
 		}
 	}
 
-	fn battery_present(&mut self) -> Result<bool, E> {
+	pub fn battery_present(&mut self) -> Result<bool, E> {
 		let level = self.battery_level()?;
 
 		Ok(level == BATTERY_LEVEL_MISSING)
@@ -241,10 +241,9 @@ mod tests {
         let address = 0x34;
 
         let mut pmic = Axp209::new(i2c, address);
-        let level = pmic.battery_level().unwrap();
-        // TODO: no_std makes this kinda hard:
+        let _level = pmic.battery_level().unwrap();
 
-	// Values for 'level' can be either the percentage, or
+		// Values for 'level' can be either the percentage, or
         // 0x7F if the battery is missing
     }
 }
