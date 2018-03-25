@@ -102,6 +102,14 @@ where
 		Ok(buf[0])
 	}
 
+	fn set_8bit_register(&mut self, register: u8, value: u8) -> Result<(), E> {
+		let comm: [u8; 2] = [ register, value ];
+
+		self.device.write(ADDRESS, &comm)?;
+
+		Ok(())
+	}
+
 	fn get_16bit_register(&mut self, register: u8) -> Result<u16, E> {
 		let comm: [u8; 1] = [ register ];
 		let mut buf: [u8; 2] = [0, 0];
@@ -125,6 +133,10 @@ where
 
 	pub fn timer_control(&mut self) -> Result<TimerControl, E> {
 		Ok(TimerControl::new(self.get_8bit_register(Registers::TimerControl as u8)?))
+	}
+
+	pub fn set_timer_control(&mut self, value: TimerControl) -> Result<(), E> {
+		Ok(self.set_8bit_register(Registers::TimerControl as u8, value.bits())?)
 	}
 
 	/// In milliamps
