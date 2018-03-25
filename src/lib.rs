@@ -21,6 +21,8 @@ use byteorder::{ByteOrder, BigEndian};
 use hal::blocking::i2c::{Read, Write, WriteRead};
 
 pub const BATTERY_LEVEL_MISSING: u8 = 0x7f;
+/// The address can't be changed
+const ADDRESS: u8 = 0x34;
 
 enum Registers {
 	// Power status and control registers
@@ -55,24 +57,22 @@ enum Registers {
 
 pub struct Axp209<I2C> {
 	device: I2C,
-	address: u8,
 }
 
 impl<I2C, E> Axp209<I2C>
 where
 	I2C: WriteRead<Error = E> + Write<Error = E> + Read<Error = E>,
 {
-	pub fn new(dev: I2C, address: u8) -> Self {
+	pub fn new(dev: I2C) -> Self {
 		Axp209 {
 			device: dev,
-			address: address,
 		}
 	}
 
 	fn write_read_byte(&mut self, send: u8) -> Result<u8, E> {
 		let comm: [u8; 1] = [ send ];
 		let mut buf: [u8; 1] = [0];
-		self.device.write_read(self.address, &comm, &mut buf)?;
+		self.device.write_read(ADDRESS, &comm, &mut buf)?;
 
 		Ok(buf[0])
 	}
@@ -84,7 +84,7 @@ where
 		let mut recv: [u8; 2] = [ 0, 0 ];
 		let mut value: u16;
 
-		self.device.write_read(self.address, &comm, &mut recv)?;
+		self.device.write_read(ADDRESS, &comm, &mut recv)?;
 
 		// Weird way to store a number if ye ask me!
 		value = (recv[0] as u16) << 4;
@@ -97,7 +97,7 @@ where
 		let comm: [u8; 1] = [ register ];
 		let mut buf: [u8; 1] = [0];
 
-		self.device.write_read(self.address, &comm, &mut buf)?;
+		self.device.write_read(ADDRESS, &comm, &mut buf)?;
 
 		Ok(buf[0])
 	}
@@ -106,7 +106,7 @@ where
 		let comm: [u8; 1] = [ register ];
 		let mut buf: [u8; 2] = [0, 0];
 
-		self.device.write_read(self.address, &comm, &mut buf)?;
+		self.device.write_read(ADDRESS, &comm, &mut buf)?;
 
 		Ok(BigEndian::read_u16(&buf))
 	}
@@ -133,7 +133,7 @@ where
 		let mut recv: [u8; 2] = [ 0, 0 ];
 		let mut value: u16;
 
-		self.device.write_read(self.address, &comm, &mut recv)?;
+		self.device.write_read(ADDRESS, &comm, &mut recv)?;
 
 		// Of course one would have 5 least significant bits and
 		// ruin my get_adc_10bits function above!

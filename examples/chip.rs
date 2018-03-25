@@ -8,9 +8,8 @@ use axp209::{Axp209, BATTERY_LEVEL_MISSING};
 
 fn main() {
 	let i2c = I2cdev::new("/dev/i2c-0").unwrap();
-	let address = 0x34;
 
-	let mut pmic = Axp209::new(i2c, address);
+	let mut pmic = Axp209::new(i2c);
 	let level = pmic.battery_level();
 	display_battery_info(level);
 
