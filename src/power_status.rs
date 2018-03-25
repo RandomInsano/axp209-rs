@@ -5,8 +5,9 @@ bitflags! {
         const VBUS_PRESENT = 1 << 5;
         const VBUS_USABLE = 1 << 4;
         const VBUS_ABOVE_HOLD = 1 << 3;
-        const SHORT_CIRCUIT = 1 << 2; // A fine movie
-        const START_ON_POWER = 1 << 1; // If the PMIC boots when ACIN/VBUS connected
+        const DISCHARGING = 1 << 2;
+        const SHORT_CIRCUIT = 1 << 1; // A fine movie
+        const START_ON_POWER = 1 << 0; // If the PMIC boots when ACIN/VBUS connected
     }
 }
 
