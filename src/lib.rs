@@ -79,7 +79,7 @@ where
 
 	/// Many ADC functions on this chip provide their values as a strange
 	/// 10bit value that requires some funky shifting
-	fn get_adc_10bits(&mut self, register: u8) -> Result<u16, E> {
+	fn get_adc_12bits(&mut self, register: u8) -> Result<u16, E> {
 		let comm: [u8; 1] = [ register ];
 		let mut recv: [u8; 2] = [ 0, 0 ];
 		let mut value: u16;
@@ -136,7 +136,7 @@ where
 		self.device.write_read(ADDRESS, &comm, &mut recv)?;
 
 		// Of course one would have 5 least significant bits and
-		// ruin my get_adc_10bits function above!
+		// ruin my get_adc_12bits function above!
 		value = (recv[0] as u16) << 5;
 		value |= recv[1] as u16 & 0x1f;
 
@@ -145,7 +145,7 @@ where
 
 	/// In millivolts
 	pub fn battery_voltage(&mut self) -> Result<u16, E> {
-		let mut value = self.get_adc_10bits(Registers::BatteryVoltage as u8)?;
+		let mut value = self.get_adc_12bits(Registers::BatteryVoltage as u8)?;
 
 		// Voltage is in 1.1mV increments, so just add 1/10 the value and
 		// avoid those pesky floating point multiplications. :D
@@ -156,14 +156,14 @@ where
 
 	/// In milliamps
 	pub fn battery_charging_current(&mut self) -> Result<u16, E> {
-		let value = self.get_adc_10bits(Registers::BatteryChargeCurrent as u8)?;
+		let value = self.get_adc_12bits(Registers::BatteryChargeCurrent as u8)?;
 
 		Ok(value / 2)
 	}
 
 	/// In millivolts
 	pub fn acin_voltage(&mut self) -> Result<u16, E> {
-		let mut value = self.get_adc_10bits(Registers::AcinVoltage as u8)?;
+		let mut value = self.get_adc_12bits(Registers::AcinVoltage as u8)?;
 
 		value += value / 7;
 
@@ -172,7 +172,7 @@ where
 
 	/// In milliamps
 	pub fn acin_current(&mut self) -> Result<u16, E> {
-		let mut value = self.get_adc_10bits(Registers::AcinCurrent as u8)?;
+		let mut value = self.get_adc_12bits(Registers::AcinCurrent as u8)?;
 
 		// Trying to avoid too much rounding as it's multiples of 0.625 milliamps.
 		// For similar odd math with explination, check out vbus_current()
@@ -183,7 +183,7 @@ where
 
 	/// In milliamps
 	pub fn vbus_voltage(&mut self) -> Result<u16, E> {
-		let mut value = self.get_adc_10bits(Registers::VbusVoltage as u8)?;
+		let mut value = self.get_adc_12bits(Registers::VbusVoltage as u8)?;
 
 		value += value / 7;
 
@@ -192,7 +192,7 @@ where
 
 	/// In milliamps
 	pub fn vbus_current(&mut self) -> Result<u16, E> {
-		let mut value = self.get_adc_10bits(Registers::VbusCurrent as u8)?;
+		let mut value = self.get_adc_12bits(Registers::VbusCurrent as u8)?;
 
 		// Trying to avoid too much rounding as it's multiples of 0.375 milliamps
 		// The max this register will return is 4096, so we have enough headroom
@@ -206,7 +206,7 @@ where
 	pub fn temperature(&mut self) -> Result<i16, E> {
 		// Check out page 25 of the datasheet for the weird math
 
-		let value = self.get_adc_10bits(Registers::Temperature as u8)?;
+		let value = self.get_adc_12bits(Registers::Temperature as u8)?;
 
 		let mut value = value as i16 / 10;
 		value -= 145;
@@ -216,7 +216,7 @@ where
 
 	/// In millivolts. Battery temperature sensor
 	pub fn ts_voltage(&mut self) -> Result<u16, E> {
-		let value = self.get_adc_10bits(Registers::BatteryTemperature as u8)?;
+		let value = self.get_adc_12bits(Registers::BatteryTemperature as u8)?;
 
 		// Increments of 0.8
 		Ok((value * 8) / 10)
@@ -226,7 +226,7 @@ where
 	/// as there is nothing in the datasheet specifically for Ipsout's settings
 	/// and there is no register defined for ipsout.
 	pub fn ipsout_voltage(&mut self) -> Result<u16, E> {
-		let value = self.get_adc_10bits(Registers::SystemIpsout as u8)?;
+		let value = self.get_adc_12bits(Registers::SystemIpsout as u8)?;
 
 		// Increments of 1.4
 		Ok((value * 14) / 10)
@@ -234,14 +234,14 @@ where
 
 	/// In millivolts. Unconfirmed
 	pub fn gpio0_voltage(&mut self) -> Result<u16, E> {
-		let value = self.get_adc_10bits(Registers::Gpio0Voltage as u8)?;
+		let value = self.get_adc_12bits(Registers::Gpio0Voltage as u8)?;
 
 		Ok(value / 2)
 	}
 
 	/// In millivolts. Unconfirmed
 	pub fn gpio1_voltage(&mut self) -> Result<u16, E> {
-		let value = self.get_adc_10bits(Registers::Gpio1Voltage as u8)?;
+		let value = self.get_adc_12bits(Registers::Gpio1Voltage as u8)?;
 
 		Ok(value / 2)
 	}
