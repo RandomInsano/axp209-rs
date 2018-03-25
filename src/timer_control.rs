@@ -27,6 +27,8 @@ impl TimerControl {
     }
 
     pub fn set_minutes(&mut self, value: u8) {
+        assert!(value < 127, "Value can only be between 0 and 127 minutes");
+
         let expired = self.expired();
 
         self.bits = value;
