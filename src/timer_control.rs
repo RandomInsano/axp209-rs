@@ -37,7 +37,7 @@ impl TimerControl {
         self.contains(Self::TIMER_EXPIRED)
     }
 
-    pub fn set_expired(&self, value: bool) {
+    pub fn set_expired(&mut self, value: bool) {
         self.set(Self::TIMER_EXPIRED, value);
     }
 }
