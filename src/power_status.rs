@@ -2,11 +2,11 @@ bitflags! {
     /// The Power Status register hold information about the power status.
     /// All bits here are read-only.
 
-	pub struct PowerStatus: u8 {
+    pub struct PowerStatus: u8 {
         /// Whether there is power coming in on the ACIN pin or not. Note that
         /// this is not the power coming from USB on the NTC C.H.I.P. but it
         /// may be wired differently in other applications
-		const ACIN_PRESENT = 1 << 7;
+        const ACIN_PRESENT = 1 << 7;
         /// Whether the voltage coming in the ACIN pin is enough to power the
         /// system.
         const ACIN_USABLE = 1 << 6;

@@ -1,21 +1,21 @@
 // TODO: Is this much wrapping actually worthwhile? What is the expectation? Check other crates.
 
 bitflags! {
-	pub struct AdcControl: u16 {
-		const BATTERY_VOLTAGE = 1 << 15;
-		const BATTERY_CURRENT = 1 << 14;
-		const ACIN_VOLTAGE = 1 << 13;
-		const ACIN_CURRENT = 1 << 12;
-		const VBUS_VOLTAGE = 1 << 11;
-		const VBUS_CURRENT = 1 << 10;
+    pub struct AdcControl: u16 {
+        const BATTERY_VOLTAGE = 1 << 15;
+        const BATTERY_CURRENT = 1 << 14;
+        const ACIN_VOLTAGE = 1 << 13;
+        const ACIN_CURRENT = 1 << 12;
+        const VBUS_VOLTAGE = 1 << 11;
+        const VBUS_CURRENT = 1 << 10;
         /// Tests internal voltage to make sure it's still accurate
-		const APS_VOLTAGE = 1 << 9;
+        const APS_VOLTAGE = 1 << 9;
         /// Temperature sensor for battery or backup battery voltage sense
-		const TS_FUNCTION = 1 << 8;
-		const TEMPERATURE = 1 << 7;
-		const GPIO0 = 1 << 3;
-		const GPIO1 = 1 << 2;
-	}
+        const TS_FUNCTION = 1 << 8;
+        const TEMPERATURE = 1 << 7;
+        const GPIO0 = 1 << 3;
+        const GPIO1 = 1 << 2;
+    }
 }
 
 impl AdcControl {

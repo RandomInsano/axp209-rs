@@ -14,7 +14,7 @@ bitflags! {
     /// 
     /// ```
     ///     // Use the timer on the NTC C.H.I.P. on Linux
-    /// 	let i2c = I2cdev::new("/dev/i2c-0").unwrap();
+    ///     let i2c = I2cdev::new("/dev/i2c-0").unwrap();
     ///     let mut pmic = Axp209::new(i2c);
     ///     let timer = pmic.timer_control();
     ///     
@@ -36,8 +36,8 @@ bitflags! {
     /// 
     /// The AXP209 has the ability to send an interrupt when the timer expires
     /// but that hasn't been implemented here yet.
-	pub struct TimerControl: u8 {
-		const TIMER_EXPIRED = 1 << 7;
+        pub struct TimerControl: u8 {
+                const TIMER_EXPIRED = 1 << 7;
     }
 }
 
