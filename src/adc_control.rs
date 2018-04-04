@@ -2,18 +2,28 @@
 
 bitflags! {
     pub struct AdcControl: u16 {
+        /// Register address to read battery voltage from
         const BATTERY_VOLTAGE = 1 << 15;
+        /// Register address to read battery current from
         const BATTERY_CURRENT = 1 << 14;
+        /// Register address to read inbound power voltage from
         const ACIN_VOLTAGE = 1 << 13;
+        /// Register address to read inbound power current from
         const ACIN_CURRENT = 1 << 12;
+        /// Register address to read USB power voltage from
         const VBUS_VOLTAGE = 1 << 11;
+        /// Register address to read USB power amperage from
         const VBUS_CURRENT = 1 << 10;
-        /// Tests internal voltage to make sure it's still accurate
+        /// Register address to test internal voltage to make sure it's still accurate
         const APS_VOLTAGE = 1 << 9;
-        /// Temperature sensor for battery or backup battery voltage sense
+        /// Register address for temperature sensor for battery though
+        /// it can be used for any voltage between 0 and 3.3v
         const TS_FUNCTION = 1 << 8;
+        /// Register address for the internal temperature
         const TEMPERATURE = 1 << 7;
+        /// Register address to read voltage from GPIO pin 0 (if configured)
         const GPIO0 = 1 << 3;
+        /// Register address to read voltage from GPIO pin 1 (if configured)
         const GPIO1 = 1 << 2;
     }
 }

@@ -1,6 +1,35 @@
-//#![deny(warnings)]
+//! The [AXP209](http://dl.linux-sunxi.org/AXP/AXP209_Datasheet_v1.0en.pdf)
+//! is a power management chip made by X-Powers for use mainly
+//! in Allwinner ARM system-on-a-chip reference designs. It can be found
+//! in quite a few systems, so if you've got a strange need to control
+//! it from a supported Rust target, this'll get you there.
+//! 
+//! The machines I know of so far using it:
+//! * [Next Thing Co.'s C.H.I.P computer](https://getchip.com/pages/chip)
+//! * [Retro Games Ltd's C64 Mini](https://thec64.com/about/)
+//! * [Cubietech's early Cubieboards (A10, A20, Cubietruck)](http://cubieboard.org/model/)
+//!
+//! The big challenge with interfacing with this chip is that because
+//! it controls power, the kernel has exclusive access to it. That's
+//! probably a good thing if you don't know what you're doing, and
+//! if you brick your little computer, that's on you. :P
+//! 
+//! This driver doesn't go that far yet and only supports the following
+//! features:
+//! * Reading various channels of the ADC for temperature, voltage, current, etc
+//! * Reading the power status (Is external power coming in? From where? Is there a battery attached?)
+//! * Using the internal 127 minute timer (see `timer_control`)
+//! 
+//! If there's a feature you'd like to see implemented, either open an issue or
+//! create a pull request if you're feeling helpful.
+//! 
+//! If you need some examples, check the `examples` folder. These won't work until
+//! you've disabled the kernel's access to the chip so expect some difficulty there.
+//! I had to re-compile my kernel with every AXP20X feature disabled.
+
 #![no_std]
 #![feature(rustc_private)]
+#![deny(warnings)]
 
 extern crate embedded_hal as hal;
 #[macro_use]
@@ -25,16 +54,16 @@ pub const BATTERY_LEVEL_MISSING: u8 = 0x7f;
 const ADDRESS: u8 = 0x34;
 
 enum Registers {
-    // Power status and control registers
+    /// Power status and control registers
     PowerStatus = 0x00,
     ChargingStatus = 0x01,
-    OutputControl = 0x12,
+    //OutputControl = 0x12,
     TimerControl = 0x8a,
 
-    // ADC Control
+    /// ADC Control
     AdcControl = 0x82,    
 
-    // ADC Value registers
+    /// ADC Value registers
     AcinVoltage = 0x56,
     AcinCurrent = 0x58,
     VbusVoltage = 0x5a,
@@ -43,15 +72,15 @@ enum Registers {
     BatteryTemperature = 0x62,
     Gpio0Voltage = 0x64,
     Gpio1Voltage = 0x66,
-    InstantaniousBatteryPower = 0x70, // Three bytes?!
+    //InstantaniousBatteryPower = 0x70, // Three bytes?!
     BatteryVoltage = 0x78,
     BatteryChargeCurrent = 0x7a,
     BatteryDischargeCurrent = 0x7c,
     SystemIpsout = 0x7e,
 
-    CoulombBattery = 0xb0,
-    CoulombBatteryDischarge = 0xb4,
-    CoulombBatteryEncryption = 0xb8,
+    //CoulombBattery = 0xb0,
+    //CoulombBatteryDischarge = 0xb4,
+    //CoulombBatteryEncryption = 0xb8,
     BatteryLevel = 0xb9,
 }
 
