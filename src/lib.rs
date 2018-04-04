@@ -12,20 +12,33 @@
 //! The big challenge with interfacing with this chip is that because
 //! it controls power, the kernel has exclusive access to it. That's
 //! probably a good thing if you don't know what you're doing, and
-//! if you brick your little computer, that's on you. :P
+//! if you brick your little computer, that's on you. 😜
 //! 
 //! This driver doesn't go that far yet and only supports the following
 //! features:
-//! * Reading various channels of the ADC for temperature, voltage, current, etc
-//! * Reading the power status (Is external power coming in? From where? Is there a battery attached?)
+//! * Reading various channels of the ADC:
+//!   * Internal temperature
+//!   * Battery level (0 - 100%)
+//!   * Battery voltage, charging amperage, draining amperage
+//!   * VBUS voltage, amperage (usually tied to USB input)
+//!   * Power input voltage, amperage (additional external power)
+//!   * TS input (for external temperatures or backup battery)
+//!   * Voltage at GPIO 0 or 1
+//! * Reading the power status
+//!   * Is external power coming in?
+//!   * Where's it coming from?
+//!   * Is there a battery attached?
 //! * Using the internal 127 minute timer (see `timer_control`)
 //! 
-//! If there's a feature you'd like to see implemented, either open an issue or
-//! create a pull request if you're feeling helpful.
+//! If there's a feature you'd like to see implemented, either
+//! [open an issue](https://github.com/RandomInsano/axp209-rs/issues)
+//! or create a pull request if you're feeling helpful. Also feel free
+//! to open an issue if you have general questions.
 //! 
-//! If you need some examples, check the `examples` folder. These won't work until
-//! you've disabled the kernel's access to the chip so expect some difficulty there.
-//! I had to re-compile my kernel with every AXP20X feature disabled.
+//! If you need some examples, check the `examples` folder. They won't work until
+//! if you have a kernel that is accessing to the chip so expect some difficulty
+//! there. Because I was using the chip on a single board computer, I had to
+//! re-compile my kernel with every AXP20X feature disabled.
 
 #![no_std]
 #![feature(rustc_private)]
