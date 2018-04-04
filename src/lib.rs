@@ -29,6 +29,7 @@
 //!   * Where's it coming from?
 //!   * Is there a battery attached?
 //! * Using the internal 127 minute timer (see `timer_control`)
+//! * Turning various output voltages on and off
 //! 
 //! If there's a feature you'd like to see implemented, either
 //! [open an issue](https://github.com/RandomInsano/axp209-rs/issues)
@@ -51,11 +52,13 @@ extern crate byteorder;
 
 pub mod adc_control;
 pub mod power_status;
+pub mod power_control;
 pub mod charging_status;
 pub mod timer_control;
 
 pub use self::adc_control::AdcControl;
 pub use self::power_status::PowerStatus;
+pub use self::power_control::PowerControl;
 pub use self::charging_status::ChargingStatus;
 pub use self::timer_control::TimerControl;
 
@@ -70,7 +73,7 @@ enum Registers {
     /// Power status and control registers
     PowerStatus = 0x00,
     ChargingStatus = 0x01,
-    //OutputControl = 0x12,
+    PowerControl = 0x12,
     TimerControl = 0x8a,
 
     /// ADC Control
@@ -167,6 +170,14 @@ where
 
     pub fn power_status(&mut self) -> Result<PowerStatus, E> {
         Ok(PowerStatus::new(self.get_8bit_register(Registers::PowerStatus as u8)?))
+    }
+
+    pub fn power_control(&mut self) -> Result<PowerControl, E> {
+        Ok(PowerControl::new(self.get_8bit_register(Registers::PowerControl as u8)?))
+    }
+
+    pub fn set_power_control(&mut self, value: PowerControl) -> Result<(), E> {
+        Ok(self.set_8bit_register(Registers::PowerControl as u8, value.bits())?)
     }
 
     pub fn charging_status(&mut self) -> Result<ChargingStatus, E> {
