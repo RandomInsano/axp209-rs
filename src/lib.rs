@@ -14,9 +14,9 @@
 //! probably a good thing if you don't know what you're doing, and
 //! if you brick your little computer, that's on you. 😜
 //! 
-//! This driver doesn't go that far yet and only supports the following
-//! features:
-//! * Reading various channels of the ADC:
+//! This driver doesn't try to implement every feature yet and only supports
+//! the following:
+//! * Reading various channels of the ADC
 //!   * Internal temperature
 //!   * Battery level (0 - 100%)
 //!   * Battery voltage, charging amperage, draining amperage
@@ -28,8 +28,34 @@
 //!   * Is external power coming in?
 //!   * Where's it coming from?
 //!   * Is there a battery attached?
+//!   * Is that battery (dis)charging?
 //! * Using the internal 127 minute timer (see `timer_control`)
 //! * Turning various output voltages on and off
+//! 
+//! Here's the output from the example program which runs on the PocketChip:
+//! 
+//! ```text
+//! Battery level: 100%
+//! Voltage: 4184mV
+//! Discharge Current: 0mA
+//! Charge Current:    0mA
+//! ACIN Voltage:      0mV
+//! ACIN Current:      0mA
+//! Vbus Voltage:      0mV
+//! Vbus Current:      0mA
+//! Temperature:       47°C
+//! Temp Sensor Pin:   0mV
+//! Ipsout?!:          4583mV
+//! 
+//! ADC Control Flags: BATTERY_VOLTAGE | BATTERY_CURRENT | ACIN_VOLTAGE | ACIN_CURRENT | APS_VOLTAGE | TS | TEMPERATURE
+//! Power Control Flags: LDO3 | DCDC2 | LDO4 | LDO2 | DCDC3 | EXTEN
+//! Power Status Flags:  VBUS_PRESENT | VBUS_USABLE | VBUS_ABOVE_HOLD | START_ON_POWER
+//! Charge Status Flags: BATTERY_PRESENT
+//! 
+//! Timer:
+//! 	Expired: false
+//! 	Time (minutes): 0
+//! ```
 //! 
 //! If there's a feature you'd like to see implemented, either
 //! [open an issue](https://github.com/RandomInsano/axp209-rs/issues)
@@ -56,7 +82,7 @@ pub mod power_control;
 pub mod charging_status;
 pub mod timer_control;
 
-pub use self::adc_control::AdcControl;
+pub use self::adc_control::{AdcControl, AdcSampleTs, SampleRate};
 pub use self::power_status::PowerStatus;
 pub use self::power_control::PowerControl;
 pub use self::charging_status::ChargingStatus;
@@ -164,10 +190,24 @@ where
         Ok(BigEndian::read_u16(&buf))
     }
 
+    fn set_16bit_register(&mut self, register: u8, value: u16) -> Result<(), E> {
+        let high = (value >> 8) as u8;
+        let low = (value & 0x00ff) as u8;
+        let comm: [u8; 3] = [register, high, low];
+
+        self.device.write(ADDRESS, &comm)?;
+
+        Ok(())
+    }    
+
     pub fn adc_control(&mut self) -> Result<AdcControl, E> {
         Ok(AdcControl::new(self.get_16bit_register(Registers::AdcControl as u8)?))
     }
 
+    pub fn set_adc_control(&mut self, value: AdcControl) -> Result<(), E> {
+        Ok(self.set_16bit_register(Registers::AdcControl as u8, value.bits())?)
+    }
+    
     pub fn power_status(&mut self) -> Result<PowerStatus, E> {
         Ok(PowerStatus::new(self.get_8bit_register(Registers::PowerStatus as u8)?))
     }
@@ -176,6 +216,9 @@ where
         Ok(PowerControl::new(self.get_8bit_register(Registers::PowerControl as u8)?))
     }
 
+    /// Enable or disable voltage outputs. This can be dangerous depending on how
+    /// the chip has been wired into a circuit. Check the `PowerControl` docs for
+    /// some examples.
     pub fn set_power_control(&mut self, value: PowerControl) -> Result<(), E> {
         Ok(self.set_8bit_register(Registers::PowerControl as u8, value.bits())?)
     }
@@ -264,7 +307,7 @@ where
         // to multiply by 16, and 0.375*16 (probably by design) comes out as 6.
         value = ((value * 16) / 6) / 16;
 
-        Ok(value / 2)
+        Ok(value)
     }
 
     /// In celcius
@@ -334,8 +377,8 @@ mod tests {
 
     use super::*;
 
-    use self::linux_hal::{Pin, I2cdev};
     use hal::digital::OutputPin;
+    use self::linux_hal::{Pin, I2cdev};
 
     #[test]
     fn permissions() {
@@ -352,13 +395,26 @@ mod tests {
     #[test]
     fn battery_level() {
         let i2c = I2cdev::new("/dev/i2c-0").unwrap();
-        let address = 0x34;
-
-        let mut pmic = Axp209::new(i2c, address);
+        let mut pmic = Axp209::new(i2c);
         let _level = pmic.battery_level().unwrap();
 
         // Values for 'level' can be either the percentage, or
         // 0x7F if the battery is missing
+    }
+
+    #[test]
+    // Because I don't trust the binary math I did here
+    fn adc_control_rate_setting() {
+        let mut b = AdcSampleTs::new(0);
+
+        b.set_sample_rate(SampleRate::Hz25);
+        assert!(b.sample_rate() == SampleRate::Hz25);
+
+        b.set_sample_rate(SampleRate::Hz50);
+        assert!(b.sample_rate() == SampleRate::Hz50);
+
+        b.set_sample_rate(SampleRate::Hz200);
+        assert!(b.sample_rate() == SampleRate::Hz200)
     }
 }
 
