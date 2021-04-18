@@ -6,6 +6,7 @@ authors = ["Edwin Amsler <edwinguy@gmail.com>"]
 [dependencies]
 embedded-hal = "0.1.2"
 byteorder = "1.2.1"
+bitflags = "1.0"
 
 [dev-dependencies]
 linux-embedded-hal = "0.1.1"
