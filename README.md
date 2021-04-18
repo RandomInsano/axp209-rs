@@ -69,7 +69,7 @@ re-compile my kernel with every AXP20X feature disabled.
 
 ## License
 
-Cargo is primarily distributed under the terms of both the MIT license
+This crate is distributed under the terms of both the MIT license
 and the Apache License (Version 2.0).
 
 See [LICENSE-APACHE](LICENSE-APACHE) and [LICENSE-MIT](LICENSE-MIT) for details.
