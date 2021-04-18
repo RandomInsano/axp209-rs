@@ -66,3 +66,11 @@ If you need some examples, check the `examples` folder. They won't work until
 if you have a kernel that is accessing to the chip so expect some difficulty
 there. Because I was using the chip on a single board computer, I had to
 re-compile my kernel with every AXP20X feature disabled.
+
+## License
+
+This crate is distributed under the terms of both the MIT license
+and the Apache License (Version 2.0).
+
+See [LICENSE-APACHE](LICENSE-APACHE) and [LICENSE-MIT](LICENSE-MIT) for details.
+
