@@ -6,7 +6,7 @@ it from a supported Rust target, this'll get you there.
 
 The machines I know of so far using it:
 * [Next Thing Co.'s C.H.I.P computer](https://getchip.com/pages/chip)
-* [Retro Games Ltd's C64 Mini](https://thec64.com/about/)
+* [Retro Games Ltd's C64 Mini](https://retrogames.biz/thec64-mini)
 * [Cubietech's early Cubieboards (A10, A20, Cubietruck)](http://cubieboard.org/model/)
 
 The big challenge with interfacing with this chip is that because
